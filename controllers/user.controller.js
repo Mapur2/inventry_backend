@@ -1,4 +1,4 @@
-const User = require('../model/user.model')
+const User = require('../models/user.model')
 const ApiError = require('../utils/ApiError')
 const ApiResponse = require('../utils/ApiResponse')
 const asyncHandler = require('../utils/asyncHandler')
@@ -7,11 +7,11 @@ const jwt = require('jsonwebtoken')
 
 const registerUser = asyncHandler(async (req, res) => {
 
-    const { email, fullname, password, username,phone } = req.body
-    if (!email || !fullname || !password || !username ||!phone)
+    const { email, fullname, password, phone } = req.body
+    if (!email || !fullname || !password ||!phone)
         throw new ApiError(400, "All fields are required")
 
-    if ([email, fullname, password, username, phone].some((f) => f.trim() === ""))
+    if ([email, fullname, password,  , phone].some((f) => f.trim() === ""))
         throw new ApiError(400, "All fields are required")
 
     const userExists = await User.findOne({ email: email })
@@ -36,4 +36,60 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
+const generateAccessToken = async(userId)=>{
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        return accessToken
+    } catch (error) {
+        console.log(error)
+        throw new ApiError(500, "Something went wrong while create refresh and access token")
+    }
+}
 
+const loginUser = asyncHandler(async (req, res) => {
+    //get email, 
+    // find the user 
+    // password check
+    // access and refresh token
+    //send  cookie
+
+    const { email, password } = req.body
+    //console.log(email, ,password)
+    if (!email)
+        throw new ApiError(400, "  or email is required")
+
+    const user = await User.findOne({ email })
+    //console.log(user)
+    if (!user)
+        throw new ApiError(404, "User does not exist")
+
+    const passCheck = await user.isPasswordCorrect(password)
+
+    if (!passCheck)
+        throw new ApiError(404, "Password is invalid")
+
+    const accesstoken  = await generateAccessToken(user._id)
+
+    const loggeduser = await User.findById(user._id,{fullname:1,email:1,phone:1})
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+        .status(200)
+        .cookie("accessToken", accesstoken, options)
+        .json(
+            new ApiResponse(200,
+                {
+                    user: loggeduser,
+                    accesstoken,
+                },
+                "User logged in successfully"
+            )
+        )
+})
+
+module.exports = {registerUser,loginUser}
