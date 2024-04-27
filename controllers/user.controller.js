@@ -2,16 +2,17 @@ const User = require('../models/user.model')
 const ApiError = require('../utils/ApiError')
 const ApiResponse = require('../utils/ApiResponse')
 const asyncHandler = require('../utils/asyncHandler')
-//const { uploadOnCloudinary, deleteOnCloudindary } = require('../utils/cloudinary')
+const { uploadOnCloudinary, deleteOnCloudindary } = require('../utils/cloudinary')
 const jwt = require('jsonwebtoken')
+const Product = require("../models/product.model")
 
 const registerUser = asyncHandler(async (req, res) => {
 
     const { email, fullname, password, phone } = req.body
-    if (!email || !fullname || !password ||!phone)
+    if (!email || !fullname || !password || !phone)
         throw new ApiError(400, "All fields are required")
 
-    if ([email, fullname, password,  , phone].some((f) => f.trim() === ""))
+    if ([email, fullname, password, , phone].some((f) => f.trim() === ""))
         throw new ApiError(400, "All fields are required")
 
     const userExists = await User.findOne({ email: email })
@@ -36,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
-const generateAccessToken = async(userId)=>{
+const generateAccessToken = async (userId) => {
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
@@ -57,7 +58,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body
     //console.log(email, ,password)
     if (!email)
-        throw new ApiError(400, "  or email is required")
+        throw new ApiError(400, "email is required")
 
     const user = await User.findOne({ email })
     //console.log(user)
@@ -69,9 +70,9 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!passCheck)
         throw new ApiError(404, "Password is invalid")
 
-    const accesstoken  = await generateAccessToken(user._id)
+    const accesstoken = await generateAccessToken(user._id)
 
-    const loggeduser = await User.findById(user._id,{fullname:1,email:1,phone:1})
+    const loggeduser = await User.findById(user._id, { fullname: 1, email: 1, phone: 1 })
 
     const options = {
         httpOnly: true,
@@ -92,4 +93,31 @@ const loginUser = asyncHandler(async (req, res) => {
         )
 })
 
-module.exports = {registerUser,loginUser}
+const createBusiness = asyncHandler(async (req, res) => {
+    const { business, business_email, whatsapp } = req.body
+    const userId = req.user._id
+    if (!business_email || !business || !whatsapp)
+        throw new ApiError(400, "All fields are required")
+
+    if ([business_email, business, whatsapp].some((f) => f.trim() === ""))
+        throw new ApiError(400, "All fields are required")
+
+    const user = await User.findByIdAndUpdate(userId, {
+        "$set": {
+            business,
+            business_email,
+            whatsapp
+        }
+    }, {
+        new: true
+    })
+    if (!user)
+        throw new ApiError(404, "Invalid user id")
+
+    return res.status(200)
+        .json(new ApiResponse(200, user, "Created Business successfully"))
+})
+
+
+
+module.exports = { registerUser, loginUser, createBusiness}
