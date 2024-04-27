@@ -5,6 +5,7 @@ const verifyJWT = require("../middleware/verifyJWT.js")
 const router = express.Router()
 const upload = require("../middleware/multer.js");
 const ApiResponse = require('../utils/ApiResponse.js');
+const asyncHandler = require('../utils/asyncHandler.js');
 
 router.route('/register').post(registerUser)
 
