@@ -8,12 +8,12 @@ const Product = require("../models/product.model")
 
 const registerUser = asyncHandler(async (req, res) => {
 
-    const { email, fullname, password, phone } = req.body
-    console.log(req.body)
-    if (!email || !fullname || !password || !phone)
+    const { email, fullname, password, phone, whatsapp } = req.body
+   // console.log(req.body)
+    if (!email || !fullname || !password || !phone || !whatsapp)
         throw new ApiError(400, "All fields are required")
 
-    if ([email, fullname, password, , phone].some((f) => f.trim() === ""))
+    if ([email, fullname, password, , phone, whatsapp].some((f) => f.trim() === ""))
         throw new ApiError(400, "All fields are required")
 
     const userExists = await User.findOne({ email: email })
@@ -25,7 +25,8 @@ const registerUser = asyncHandler(async (req, res) => {
         fullname: fullname,
         email,
         password,
-        phone
+        phone,
+        whatsapp
     })
 
     const createdUser = await User.findById(newUser._id).select("-password")
@@ -93,7 +94,9 @@ const loginUser = asyncHandler(async (req, res) => {
             )
         )
 })
-
+/**
+ * Not Required
+ */
 const createBusiness = asyncHandler(async (req, res) => {
     const { business, business_email, whatsapp } = req.body
     const userId = req.user._id

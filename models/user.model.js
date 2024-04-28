@@ -23,20 +23,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is required"]
     },
-    business: {
-        type: String,
-        trim: true,
-        default:null
-    },
     whatsapp: {
         type: Number,
-        default:null,
-    },
-    business_email: {
-        type: String,
-        lowercase: true,
-        trim: true,
-        default:null
+        required:true
     }
 },
     {

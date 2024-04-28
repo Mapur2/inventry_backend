@@ -16,7 +16,7 @@ router.route("/").get(asyncHandler( (req,res)=>{
 router.route("/logout").get(logout)
 //secured routes
 router.route("/detail").get(verifyJWT,getUser)
-router.route("/createbusy").post(verifyJWT,createBusiness)
+//router.route("/createbusy").post(verifyJWT,createBusiness)
 router.route("/addproduct").post(verifyJWT,upload.single('image'),insertProduct)
 router.route("/getallproducts").get(verifyJWT,getProducts)
 router.route("/product").get(verifyJWT,getProduct)
