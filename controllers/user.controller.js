@@ -9,6 +9,7 @@ const Product = require("../models/product.model")
 const registerUser = asyncHandler(async (req, res) => {
 
     const { email, fullname, password, phone } = req.body
+    console.log(req.body)
     if (!email || !fullname || !password || !phone)
         throw new ApiError(400, "All fields are required")
 
@@ -72,7 +73,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const accesstoken = await generateAccessToken(user._id)
 
-    const loggeduser = await User.findById(user._id, { fullname: 1, email: 1, phone: 1 })
+    const loggeduser = await User.findById(user._id).select("-password")
 
     const options = {
         httpOnly: true,
@@ -96,6 +97,7 @@ const loginUser = asyncHandler(async (req, res) => {
 const createBusiness = asyncHandler(async (req, res) => {
     const { business, business_email, whatsapp } = req.body
     const userId = req.user._id
+    //console.log(req.body)
     if (!business_email || !business || !whatsapp)
         throw new ApiError(400, "All fields are required")
 
@@ -110,14 +112,25 @@ const createBusiness = asyncHandler(async (req, res) => {
         }
     }, {
         new: true
-    })
+    }).select('-password')
     if (!user)
         throw new ApiError(404, "Invalid user id")
 
     return res.status(200)
-        .json(new ApiResponse(200, user, "Created Business successfully"))
+        .json(new ApiResponse(200,{ user}, "Created Business successfully"))
+})
+
+const getUser = asyncHandler((req,res)=>{
+    const user = req.user
+    return res.status(200)
+    .json(new ApiResponse(200, user, "User Details"))
+})
+
+const logout = asyncHandler(async (req,res)=>{
+    res.status(200).clearCookie("accessToken")
+    .json(200, {}, "User logged out")
 })
 
 
 
-module.exports = { registerUser, loginUser, createBusiness}
+module.exports = { registerUser, loginUser, createBusiness, getUser,logout}

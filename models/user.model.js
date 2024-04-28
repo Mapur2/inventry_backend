@@ -26,14 +26,17 @@ const userSchema = new mongoose.Schema({
     business: {
         type: String,
         trim: true,
+        default:null
     },
     whatsapp: {
         type: Number,
+        default:null,
     },
     business_email: {
         type: String,
         lowercase: true,
-        trim: true
+        trim: true,
+        default:null
     }
 },
     {
