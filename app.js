@@ -4,7 +4,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 app.use(cors({
-    origin:process.env.ORIGIN,
+    origin:[process.env.ORIGIN,"*"],
     credentials:true,
     methods:'*'
 }))

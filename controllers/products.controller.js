@@ -12,7 +12,7 @@ const insertProduct = asyncHandler(async (req, res) => {
 
     const userId = req.user._id
 
-    // console.log(req.body)
+    // console.log(req.body,imagePath)
 
     if (!name || !price || !quantity || !unitType || !imagePath)
         throw new ApiError(400, "All fields are required")
@@ -49,7 +49,7 @@ const getProducts = asyncHandler(async (req, res) => {
     const userId = req.user._id
     const products = await Product.find({
         userId
-    })
+    }).sort({updatedAt:-1})
 
     if (!products || products.length == 0)
         throw new ApiError(400, "No Products found")
