@@ -5,6 +5,8 @@ const asyncHandler = require('../utils/asyncHandler')
 const { uploadOnCloudinary, deleteOnCloudindary } = require('../utils/cloudinary')
 const jwt = require('jsonwebtoken')
 const Product = require("../models/product.model")
+const puppeteer = require('puppeteer');
+const path = require('path');
 
 const insertProduct = asyncHandler(async (req, res) => {
     const { name, price, quantity, unitType } = req.body
@@ -71,12 +73,15 @@ const getProduct = asyncHandler(async (req, res) => {
 })
 
 const updateProduct = asyncHandler(async (req, res) => {
-    const { id } = req.query
-    const { name,
+    const { 
+        id,
+        name,
         price,
         quantity,
         unitType, } = req.body
-    const product = await Product.findByIdAndUpdate(id, {
+    if(!name || !price || !quantity || !unitType )
+        throw new ApiError(400, "Enter all Fields")
+    const product = await Product.findByIdAndUpdate({_id:id}, {
         name,
         price,
         quantity,
@@ -113,5 +118,35 @@ const deleteProduct = asyncHandler(async (req, res) => {
         .json(new ApiResponse(202, product, "Product successfully deleted"))
 })
 
+const getBill = asyncHandler(async (req,res)=>{
+    const user = req.user
+    const products= await Product.find({userId:user._id})
+    const date=new Date()
+    res.render("report",{user:user,products:products,date:date.toISOString().substring(0, 10)})
+})
 
-module.exports = { insertProduct, getProducts, getProduct, updateProduct, deleteProduct }
+const getPDF = asyncHandler(async (req,res)=>{
+    const browser = await puppeteer.launch()
+    const page = await browser.newPage()
+
+    await page.goto(`${req.protocol}://${req.get('host')}/api/v1/users/bill`,{
+        waitUntil:"networkidle2"
+    })
+    await page.setViewport({width:1500,height:1050})
+    const pdf = await page.pdf({
+        path:`${path.join(__dirname,'../public/temp',"invoice.pdf")}`,
+        format:"A4"
+    })
+
+    await browser.close()
+
+    const pdfURL = path.join(__dirname,'../public/temp',"invoice.pdf")
+
+    res.set({
+        "Content-Type":"application/pdf",
+        "Content-Length":pdf.length
+    }).sendFile(pdfURL)
+
+})
+
+module.exports = { insertProduct, getProducts, getProduct, updateProduct, deleteProduct, getBill,getPDF }

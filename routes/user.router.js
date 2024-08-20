@@ -1,6 +1,6 @@
 const express = require('express');
 const { registerUser, loginUser, createBusiness,getUser,logout } = require('../controllers/user.controller');
-const {insertProduct, getProducts, getProduct, updateProduct, deleteProduct} = require("../controllers/products.controller.js")
+const {insertProduct, getProducts, getProduct, updateProduct, deleteProduct, getBill, getPDF} = require("../controllers/products.controller.js")
 const verifyJWT = require("../middleware/verifyJWT.js")
 const router = express.Router()
 const upload = require("../middleware/multer.js");
@@ -22,5 +22,7 @@ router.route("/getallproducts").get(verifyJWT,getProducts)
 router.route("/product").get(verifyJWT,getProduct)
 router.route("/updateproduct").post(verifyJWT,updateProduct)
 router.route("/deleteproduct").get(verifyJWT, deleteProduct)
+router.route("/bill").get(verifyJWT,getBill)
+router.route("/billdownload").get(getPDF)
 
 module.exports = router

@@ -9,6 +9,8 @@ app.use(cors({
     methods:'*'
 }))
 
+app.set('view engine', 'ejs');
+
 app.use(express.json({limit:'16kb'}))
 app.use(express.urlencoded({
     extended:true
