@@ -22,7 +22,7 @@ router.route("/getallproducts").get(verifyJWT,getProducts)
 router.route("/product").get(verifyJWT,getProduct)
 router.route("/updateproduct").post(verifyJWT,updateProduct)
 router.route("/deleteproduct").get(verifyJWT, deleteProduct)
-router.route("/bill").get(verifyJWT,getBill)
+router.route("/bill").post(verifyJWT,getBill)
 router.route("/billdownload").get(getPDF)
 
 module.exports = router

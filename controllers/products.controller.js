@@ -51,7 +51,7 @@ const getProducts = asyncHandler(async (req, res) => {
     const userId = req.user._id
     const products = await Product.find({
         userId
-    }).sort({updatedAt:-1})
+    }).sort({ updatedAt: -1 })
 
     if (!products || products.length == 0)
         throw new ApiError(400, "No Products found")
@@ -73,15 +73,15 @@ const getProduct = asyncHandler(async (req, res) => {
 })
 
 const updateProduct = asyncHandler(async (req, res) => {
-    const { 
+    const {
         id,
         name,
         price,
         quantity,
         unitType, } = req.body
-    if(!name || !price || !quantity || !unitType )
+    if (!name || !price || !quantity || !unitType)
         throw new ApiError(400, "Enter all Fields")
-    const product = await Product.findByIdAndUpdate({_id:id}, {
+    const product = await Product.findByIdAndUpdate({ _id: id }, {
         name,
         price,
         quantity,
@@ -104,7 +104,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
     const product = await Product.findById(id)
     if (!product)
         throw new ApiError(400, "Could not find product")
-    
+
     const deleteImage = await deleteOnCloudindary(product.imageId)
     if (!deleteImage)
         throw new ApiError(500, "Could delete product as something went wrong during deleting the image")
@@ -118,35 +118,56 @@ const deleteProduct = asyncHandler(async (req, res) => {
         .json(new ApiResponse(202, product, "Product successfully deleted"))
 })
 
-const getBill = asyncHandler(async (req,res)=>{
+const getBill = asyncHandler(async (req, res) => {
     const user = req.user
-    const products= await Product.find({userId:user._id})
-    const date=new Date()
-    res.render("report",{user:user,products:products,date:date.toISOString().substring(0, 10)})
+    const items = req.body
+    for (let i = 0; i < items.length; i++) {
+        const ele = items[i];
+        const product = await Product.findById({ _id: ele.id })
+
+        if (!product)
+            throw new ApiError(500, "Could not find a product")
+        const updateProduct = await Product.findByIdAndUpdate({ _id: ele.id }, {
+            quantity: product.quantity - ele.count
+        },
+            {
+                new: true
+            }
+        )
+
+        if (!updateProduct)
+            throw new ApiError(500, "Could not update a product")
+    }
+    return res.json(new ApiResponse(202, "ok"))
 })
 
-const getPDF = asyncHandler(async (req,res)=>{
+
+
+/**
+ * Not required
+ */
+const getPDF = asyncHandler(async (req, res) => {
     const browser = await puppeteer.launch()
     const page = await browser.newPage()
 
-    await page.goto(`${req.protocol}://${req.get('host')}/api/v1/users/bill`,{
-        waitUntil:"networkidle2"
+    await page.goto(`${req.protocol}://${req.get('host')}/api/v1/users/bill`, {
+        waitUntil: "networkidle2"
     })
-    await page.setViewport({width:1500,height:1050})
+    await page.setViewport({ width: 1500, height: 1050 })
     const pdf = await page.pdf({
-        path:`${path.join(__dirname,'../public/temp',"invoice.pdf")}`,
-        format:"A4"
+        path: `${path.join(__dirname, '../public/temp', "invoice.pdf")}`,
+        format: "A4"
     })
 
     await browser.close()
 
-    const pdfURL = path.join(__dirname,'../public/temp',"invoice.pdf")
+    const pdfURL = path.join(__dirname, '../public/temp', "invoice.pdf")
 
     res.set({
-        "Content-Type":"application/pdf",
-        "Content-Length":pdf.length
+        "Content-Type": "application/pdf",
+        "Content-Length": pdf.length
     }).sendFile(pdfURL)
 
 })
 
-module.exports = { insertProduct, getProducts, getProduct, updateProduct, deleteProduct, getBill,getPDF }
+module.exports = { insertProduct, getProducts, getProduct, updateProduct, deleteProduct, getBill, getPDF }
